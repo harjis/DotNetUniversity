@@ -26,7 +26,7 @@ namespace DotNetUniversity
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddDbContext<SchoolContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+                options.UseSqlite(Configuration.GetConnectionString("SchoolContext")));
             services.AddDatabaseDeveloperPageExceptionFilter();
             services.AddControllersWithViews();
         }
