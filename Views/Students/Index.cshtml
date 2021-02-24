@@ -11,21 +11,27 @@
 </p>
 <table class="table">
     <thead>
-        <tr>
-            <th>
+    <tr>
+        <th>
+            <a asp-action="Index" asp-route-sortOrder="@ViewData["NameSortParam"]">
                 @Html.DisplayNameFor(model => model.LastName)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.FirstMidName)
-            </th>
-            <th>
+            </a>
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.FirstMidName)
+        </th>
+        <th>
+            <a asp-action="Index" asp-route-sortOrder="@ViewData["DateSortParam"]">
                 @Html.DisplayNameFor(model => model.EnrollmentDate)
-            </th>
-            <th></th>
-        </tr>
+            </a>
+
+        </th>
+        <th></th>
+    </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
+    @foreach (var item in Model)
+    {
         <tr>
             <td>
                 @Html.DisplayFor(modelItem => item.LastName)
@@ -42,6 +48,6 @@
                 <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
             </td>
         </tr>
-}
+    }
     </tbody>
 </table>
