@@ -101,7 +101,7 @@ namespace DotNetUniversity.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            catch (DbUpdateException)
+            catch (DbUpdateException e)
             {
                 ModelState.AddModelError("", "Unable to save changes. " +
                                              "Try again, and if the problem persists " +
