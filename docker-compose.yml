@@ -5,11 +5,11 @@ services:
       context: .
     ports:
       - 80:80
-  db:
+  db-server:
     image: mcr.microsoft.com/mssql/server:2019-latest
     environment:
       ACCEPT_EULA: 'Y'
-      MSSQL_SA_PASSWORD: myMsSqlPassword123
+      MSSQL_SA_PASSWORD: verystrongPassword123
     ports:
       - 1433:1433
       - 1434:1434
