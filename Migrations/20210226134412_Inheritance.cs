@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace DotNetUniversity.Migrations
 {
@@ -6,69 +7,44 @@ namespace DotNetUniversity.Migrations
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "FirstName",
-                table: "Student");
+            migrationBuilder.DropForeignKey(
+                name: "FK_Enrollment_Student_StudentId",
+                table: "Enrollment");
 
-            migrationBuilder.DropColumn(
-                name: "LastName",
-                table: "Student");
+            migrationBuilder.DropIndex(name: "IX_Enrollment_StudentId", table: "Enrollment");
 
-            migrationBuilder.DropColumn(
-                name: "FirstName",
-                table: "Instructor");
+            migrationBuilder.RenameTable(name: "Instructor", newName: "Person");
+            migrationBuilder.AddColumn<DateTime>(name: "EnrollmentDate", table: "Person", nullable: true);
+            migrationBuilder.AddColumn<string>(name: "Discriminator", table: "Person", nullable: false, maxLength: 128,
+                defaultValue: "Instructor");
+            migrationBuilder.AlterColumn<DateTime>(name: "HireDate", table: "Person", nullable: true);
+            migrationBuilder.AddColumn<int>(name: "OldId", table: "Person", nullable: true);
 
-            migrationBuilder.DropColumn(
-                name: "LastName",
-                table: "Instructor");
+            // Copy existing Student data into new Person table.
+            migrationBuilder.Sql(
+                "INSERT INTO dbo.Person (LastName, FirstName, HireDate, EnrollmentDate, Discriminator, OldId) SELECT LastName, FirstName, null AS HireDate, EnrollmentDate, 'Student' AS Discriminator, Id AS OldId FROM dbo.Student");
+            // Fix up existing relationships to match new PK's.
+            migrationBuilder.Sql(
+                "UPDATE dbo.Enrollment SET StudentId = (SELECT Id FROM dbo.Person WHERE OldId = Enrollment.StudentId AND Discriminator = 'Student')");
 
-            migrationBuilder.AlterColumn<int>(
-                name: "Id",
-                table: "Student",
-                type: "int",
-                nullable: false,
-                oldClrType: typeof(int),
-                oldType: "int")
-                .OldAnnotation("SqlServer:Identity", "1, 1");
+            // Remove temporary key
+            migrationBuilder.DropColumn(name: "OldId", table: "Person");
 
-            migrationBuilder.AlterColumn<int>(
-                name: "Id",
-                table: "Instructor",
-                type: "int",
-                nullable: false,
-                oldClrType: typeof(int),
-                oldType: "int")
-                .OldAnnotation("SqlServer:Identity", "1, 1");
+            migrationBuilder.DropTable(
+                name: "Student");
 
-            migrationBuilder.CreateTable(
-                name: "Person",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    LastName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    FirstName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Person", x => x.Id);
-                });
+            migrationBuilder.CreateIndex(
+                name: "IX_Enrollment_StudentId",
+                table: "Enrollment",
+                column: "StudentId");
 
             migrationBuilder.AddForeignKey(
-                name: "FK_Instructor_Person_Id",
-                table: "Instructor",
-                column: "Id",
+                name: "FK_Enrollment_Person_StudentId",
+                table: "Enrollment",
+                column: "StudentId",
                 principalTable: "Person",
                 principalColumn: "Id",
-                onDelete: ReferentialAction.Restrict);
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_Student_Person_Id",
-                table: "Student",
-                column: "Id",
-                principalTable: "Person",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Restrict);
+                onDelete: ReferentialAction.Cascade);
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -85,12 +61,12 @@ namespace DotNetUniversity.Migrations
                 name: "Person");
 
             migrationBuilder.AlterColumn<int>(
-                name: "Id",
-                table: "Student",
-                type: "int",
-                nullable: false,
-                oldClrType: typeof(int),
-                oldType: "int")
+                    name: "Id",
+                    table: "Student",
+                    type: "int",
+                    nullable: false,
+                    oldClrType: typeof(int),
+                    oldType: "int")
                 .Annotation("SqlServer:Identity", "1, 1");
 
             migrationBuilder.AddColumn<string>(
@@ -110,12 +86,12 @@ namespace DotNetUniversity.Migrations
                 defaultValue: "");
 
             migrationBuilder.AlterColumn<int>(
-                name: "Id",
-                table: "Instructor",
-                type: "int",
-                nullable: false,
-                oldClrType: typeof(int),
-                oldType: "int")
+                    name: "Id",
+                    table: "Instructor",
+                    type: "int",
+                    nullable: false,
+                    oldClrType: typeof(int),
+                    oldType: "int")
                 .Annotation("SqlServer:Identity", "1, 1");
 
             migrationBuilder.AddColumn<string>(

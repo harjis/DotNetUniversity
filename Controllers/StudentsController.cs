@@ -56,7 +56,7 @@ namespace DotNetUniversity.Controllers
                 _ => students.OrderBy(s => s.LastName)
             };
             int pageSize = 3;
-            return View(await PaginatedList<Student>.CreateAsync(students.AsNoTracking(), pageNumber ?? 1,pageSize));
+            return View(await PaginatedList<Student>.CreateAsync(students.AsNoTracking(), pageNumber ?? 1, pageSize));
         }
 
         // GET: Students/Details/5
