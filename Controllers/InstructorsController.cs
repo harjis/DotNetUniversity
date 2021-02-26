@@ -28,12 +28,7 @@ namespace DotNetUniversity.Controllers
                 .Include(i => i.OfficeAssignment)
                 .Include(i => i.CourseAssignments)
                 .ThenInclude(i => i.Course)
-                .ThenInclude(i => i.Enrollments)
-                .ThenInclude(i => i.Student)
-                .Include(i => i.CourseAssignments)
-                .ThenInclude(i => i.Course)
                 .ThenInclude(i => i.Department)
-                .AsNoTracking()
                 .OrderBy(i => i.LastName)
                 .ToListAsync();
 
@@ -47,7 +42,14 @@ namespace DotNetUniversity.Controllers
             if (courseId != null)
             {
                 ViewData["CourseId"] = courseId.Value;
-                viewModel.Enrollments = viewModel.Courses.Single(x => x.CourseId == courseId).Enrollments;
+                var selectedCourse = viewModel.Courses.Single(x => x.CourseId == courseId);
+                await _context.Entry(selectedCourse).Collection(x => x.Enrollments).LoadAsync();
+                foreach (var enrollment in selectedCourse.Enrollments)
+                {
+                    await _context.Entry(enrollment).Reference(x => x.Student).LoadAsync();
+                }
+
+                viewModel.Enrollments = selectedCourse.Enrollments;
             }
 
             return View(viewModel);
