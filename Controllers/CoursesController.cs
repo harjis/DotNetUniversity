@@ -38,6 +38,7 @@ namespace DotNetUniversity.Controllers
 
             var course = await _context.Courses
                 .Include(c => c.Department)
+                .AsNoTracking()
                 .FirstOrDefaultAsync(m => m.CourseId == id);
             if (course == null)
             {
@@ -50,7 +51,7 @@ namespace DotNetUniversity.Controllers
         // GET: Courses/Create
         public IActionResult Create()
         {
-            ViewData["DepartmentId"] = new SelectList(_context.Departments, "DepartmentId", "DepartmentId");
+            PopulateDepartmentsDropDownList();
             return View();
         }
 
@@ -69,8 +70,8 @@ namespace DotNetUniversity.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            ViewData["DepartmentId"] =
-                new SelectList(_context.Departments, "DepartmentId", "DepartmentId", course.DepartmentId);
+            PopulateDepartmentsDropDownList(course.DepartmentId);
+
             return View(course);
         }
 
@@ -88,8 +89,8 @@ namespace DotNetUniversity.Controllers
                 return NotFound();
             }
 
-            ViewData["DepartmentId"] =
-                new SelectList(_context.Departments, "DepartmentId", "DepartmentId", course.DepartmentId);
+            PopulateDepartmentsDropDownList(course.DepartmentId);
+
             return View(course);
         }
 
@@ -128,8 +129,8 @@ namespace DotNetUniversity.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            ViewData["DepartmentId"] =
-                new SelectList(_context.Departments, "DepartmentId", "DepartmentId", course.DepartmentId);
+            PopulateDepartmentsDropDownList(course.DepartmentId);
+
             return View(course);
         }
 
@@ -143,6 +144,7 @@ namespace DotNetUniversity.Controllers
 
             var course = await _context.Courses
                 .Include(c => c.Department)
+                .AsNoTracking()
                 .FirstOrDefaultAsync(m => m.CourseId == id);
             if (course == null)
             {
@@ -166,6 +168,16 @@ namespace DotNetUniversity.Controllers
         private bool CourseExists(int id)
         {
             return _context.Courses.Any(e => e.CourseId == id);
+        }
+
+        private void PopulateDepartmentsDropDownList(object selectedDepartment = null)
+        {
+            var departmentsQuery = from department in _context.Departments
+                orderby department.Name
+                select department;
+
+            ViewBag.DepartmentId =
+                new SelectList(departmentsQuery.AsNoTracking(), "DepartmentId", "Name", selectedDepartment);
         }
     }
 }
