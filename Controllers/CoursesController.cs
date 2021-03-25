@@ -1,11 +1,10 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using DotNetUniversity.DAL;
+using DotNetUniversity.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using DotNetUniversity.Data;
 using DotNetUniversity.Models;
 
 namespace DotNetUniversity.Controllers
@@ -13,19 +12,19 @@ namespace DotNetUniversity.Controllers
     public class CoursesController : Controller
     {
         private readonly SchoolContext _context;
+        private readonly ICourseRepository _courseRepository;
 
-        public CoursesController(SchoolContext context)
+        public CoursesController(SchoolContext schoolContext, ICourseRepository courseRepository)
         {
-            _context = context;
+            _context = schoolContext;
+            _courseRepository = courseRepository;
         }
 
         // GET: Courses
         public async Task<IActionResult> Index()
         {
-            var schoolContext = _context.Courses
-                .Include(c => c.Department)
-                .AsNoTracking();
-            return View(await schoolContext.ToListAsync());
+            var courses = await _courseRepository.All();
+            return View(courses);
         }
 
         // GET: Courses/Details/5
@@ -36,10 +35,7 @@ namespace DotNetUniversity.Controllers
                 return NotFound();
             }
 
-            var course = await _context.Courses
-                .Include(c => c.Department)
-                .AsNoTracking()
-                .FirstOrDefaultAsync(m => m.CourseId == id);
+            var course = await _courseRepository.ById((int) id);
             if (course == null)
             {
                 return NotFound();
@@ -65,8 +61,8 @@ namespace DotNetUniversity.Controllers
         {
             if (ModelState.IsValid)
             {
-                _context.Add(course);
-                await _context.SaveChangesAsync();
+                await _courseRepository.Add(course);
+                await _courseRepository.Save();
                 return RedirectToAction(nameof(Index));
             }
 
@@ -83,7 +79,7 @@ namespace DotNetUniversity.Controllers
                 return NotFound();
             }
 
-            var course = await _context.Courses.FindAsync(id);
+            var course = await _courseRepository.Find((int) id);
             if (course == null)
             {
                 return NotFound();
@@ -111,12 +107,12 @@ namespace DotNetUniversity.Controllers
             {
                 try
                 {
-                    _context.Update(course);
-                    await _context.SaveChangesAsync();
+                    await _courseRepository.Update(course);
+                    await _courseRepository.Save();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!CourseExists(course.CourseId))
+                    if (!await CourseExists(course.CourseId))
                     {
                         return NotFound();
                     }
@@ -142,10 +138,7 @@ namespace DotNetUniversity.Controllers
                 return NotFound();
             }
 
-            var course = await _context.Courses
-                .Include(c => c.Department)
-                .AsNoTracking()
-                .FirstOrDefaultAsync(m => m.CourseId == id);
+            var course = await _courseRepository.ById((int) id);
             if (course == null)
             {
                 return NotFound();
@@ -159,15 +152,14 @@ namespace DotNetUniversity.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var course = await _context.Courses.FindAsync(id);
-            _context.Courses.Remove(course);
-            await _context.SaveChangesAsync();
+            await _courseRepository.Delete(id);
+            await _courseRepository.Save();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool CourseExists(int id)
+        private async Task<bool> CourseExists(int id)
         {
-            return _context.Courses.Any(e => e.CourseId == id);
+            return await _courseRepository.Exists(id);
         }
 
         private void PopulateDepartmentsDropDownList(object selectedDepartment = null)

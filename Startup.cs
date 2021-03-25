@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using DotNetUniversity.DAL;
 using DotNetUniversity.Data;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -29,6 +30,7 @@ namespace DotNetUniversity
                 options.UseSqlServer(Configuration.GetConnectionString("Default")));
             services.AddDatabaseDeveloperPageExceptionFilter();
             services.AddControllersWithViews();
+            services.AddScoped<ICourseRepository, CourseRepository>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

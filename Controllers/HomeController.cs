@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data.Common;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading.Tasks;
 using DotNetUniversity.Data;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using DotNetUniversity.Models;
 using DotNetUniversity.Models.SchoolViewModels;
 using Microsoft.EntityFrameworkCore;
