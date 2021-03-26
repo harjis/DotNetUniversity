@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using System.Threading.Tasks;
 using DotNetUniversity.DAL;
 using DotNetUniversity.Data;
@@ -163,14 +161,12 @@ namespace DotNetUniversity.Controllers
             return await _unitOfWork.CourseRepository.Exists(id);
         }
 
-        private void PopulateDepartmentsDropDownList(object selectedDepartment = null)
+        private async Task PopulateDepartmentsDropDownList(object selectedDepartment = null)
         {
-            var departmentsQuery = from department in _context.Departments
-                orderby department.Name
-                select department;
-
+            // TODO This doesn work for some reason
+            var departments = await _unitOfWork.DepartmentRepository.GetOrderByName();
             ViewBag.DepartmentId =
-                new SelectList(departmentsQuery.AsNoTracking(), "DepartmentId", "Name", selectedDepartment);
+                new SelectList(departments, "DepartmentId", "Name", selectedDepartment);
         }
     }
 }

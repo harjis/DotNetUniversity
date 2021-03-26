@@ -31,6 +31,7 @@ namespace DotNetUniversity
             services.AddDatabaseDeveloperPageExceptionFilter();
             services.AddControllersWithViews();
             services.AddScoped<CourseRepository>();
+            services.AddScoped<DepartmentRepository>();
             services.AddScoped<UnitOfWork>();
         }
 

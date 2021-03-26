@@ -8,11 +8,14 @@ namespace DotNetUniversity.DAL
     {
         private readonly SchoolContext _schoolContext;
         public readonly CourseRepository CourseRepository;
+        public readonly DepartmentRepository DepartmentRepository;
 
-        public UnitOfWork(SchoolContext schoolContext, CourseRepository courseRepository)
+        public UnitOfWork(SchoolContext schoolContext, CourseRepository courseRepository,
+            DepartmentRepository departmentRepository)
         {
             _schoolContext = schoolContext;
             CourseRepository = courseRepository;
+            DepartmentRepository = departmentRepository;
         }
 
         public async Task Save()
