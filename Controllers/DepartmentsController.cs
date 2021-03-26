@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Threading.Tasks;
+using DotNetUniversity.DAL;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -11,17 +12,18 @@ namespace DotNetUniversity.Controllers
     public class DepartmentsController : Controller
     {
         private readonly SchoolContext _context;
+        private readonly UnitOfWork _unitOfWork;
 
-        public DepartmentsController(SchoolContext context)
+        public DepartmentsController(UnitOfWork unitOfWork)
         {
-            _context = context;
+            _unitOfWork = unitOfWork;
         }
 
         // GET: Departments
         public async Task<IActionResult> Index()
         {
-            var schoolContext = _context.Departments.Include(d => d.Administrator);
-            return View(await schoolContext.ToListAsync());
+            var departments = await _unitOfWork.DepartmentRepository.Get(includedProperties: "Administrator");
+            return View(departments);
         }
 
         // GET: Departments/Details/5
@@ -32,10 +34,7 @@ namespace DotNetUniversity.Controllers
                 return NotFound();
             }
 
-            var department = await _context.Departments
-                .Include(d => d.Administrator)
-                .AsNoTracking()
-                .FirstOrDefaultAsync(m => m.DepartmentId == id);
+            var department = await _unitOfWork.DepartmentRepository.GetByIdAdminIncluded((int) id);
             if (department == null)
             {
                 return NotFound();
@@ -61,8 +60,8 @@ namespace DotNetUniversity.Controllers
         {
             if (ModelState.IsValid)
             {
-                _context.Add(department);
-                await _context.SaveChangesAsync();
+                await _unitOfWork.DepartmentRepository.Add(department);
+                await _unitOfWork.Save();
                 return RedirectToAction(nameof(Index));
             }
 
@@ -79,7 +78,7 @@ namespace DotNetUniversity.Controllers
                 return NotFound();
             }
 
-            var department = await _context.Departments.FindAsync(id);
+            var department = await _unitOfWork.DepartmentRepository.GetById(id);
             if (department == null)
             {
                 return NotFound();
@@ -107,7 +106,7 @@ namespace DotNetUniversity.Controllers
 
             if (departmentToUpdate == null)
             {
-                Department deletedDepartment = new Department();
+                var deletedDepartment = new Department();
                 await TryUpdateModelAsync(deletedDepartment);
                 ModelState.AddModelError(string.Empty,
                     "Unable to save changes. The department was deleted by another user.");
@@ -159,7 +158,7 @@ namespace DotNetUniversity.Controllers
 
                         if (databaseValues.InstructorId != clientValues.InstructorId)
                         {
-                            Instructor databaseInstructor =
+                            var databaseInstructor =
                                 await _context.Instructors.FirstOrDefaultAsync(i =>
                                     i.Id == databaseValues.InstructorId);
                             ModelState.AddModelError("InstructorId", $"Current value: {databaseInstructor?.FullName}");
@@ -189,10 +188,7 @@ namespace DotNetUniversity.Controllers
                 return NotFound();
             }
 
-            var department = await _context.Departments
-                .Include(d => d.Administrator)
-                .AsNoTracking()
-                .FirstOrDefaultAsync(m => m.DepartmentId == id);
+            var department = await _unitOfWork.DepartmentRepository.GetByIdAdminIncluded((int) id);
             if (department == null)
             {
                 if (concurrencyError.GetValueOrDefault())
@@ -223,11 +219,10 @@ namespace DotNetUniversity.Controllers
         {
             try
             {
-                if (await _context.Departments.AnyAsync(m => m.DepartmentId == department.DepartmentId))
-                {
-                    _context.Departments.Remove(department);
-                    await _context.SaveChangesAsync();
-                }
+                if (!await DepartmentExists(department.DepartmentId)) return RedirectToAction(nameof(Index));
+
+                _unitOfWork.DepartmentRepository.Delete(department);
+                await _unitOfWork.Save();
 
                 return RedirectToAction(nameof(Index));
             }
@@ -238,9 +233,9 @@ namespace DotNetUniversity.Controllers
             }
         }
 
-        private bool DepartmentExists(int id)
+        private async Task<bool> DepartmentExists(int id)
         {
-            return _context.Departments.Any(e => e.DepartmentId == id);
+            return await _unitOfWork.DepartmentRepository.Exists(id);
         }
     }
 }
