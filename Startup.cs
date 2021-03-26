@@ -30,7 +30,8 @@ namespace DotNetUniversity
                 options.UseSqlServer(Configuration.GetConnectionString("Default")));
             services.AddDatabaseDeveloperPageExceptionFilter();
             services.AddControllersWithViews();
-            services.AddScoped<ICourseRepository, CourseRepository>();
+            services.AddScoped<CourseRepository>();
+            services.AddScoped<UnitOfWork>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

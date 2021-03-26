@@ -4,22 +4,15 @@ using DotNetUniversity.Data;
 
 namespace DotNetUniversity.DAL
 {
-    public class UnitOfWork : IDisposable
+    public sealed class UnitOfWork : IDisposable
     {
         private SchoolContext _schoolContext;
-        private GenericRepository<CourseRepository> _courseRepository;
+        public readonly CourseRepository CourseRepository;
 
-        public GenericRepository<CourseRepository> CourseRepository
+        public UnitOfWork(SchoolContext schoolContext, CourseRepository courseRepository)
         {
-            get
-            {
-                if (_courseRepository == null)
-                {
-                    _courseRepository = new GenericRepository<CourseRepository>(_schoolContext);
-                }
-
-                return _courseRepository;
-            }
+            _schoolContext = schoolContext;
+            CourseRepository = courseRepository;
         }
 
         public async Task Save()
@@ -29,7 +22,7 @@ namespace DotNetUniversity.DAL
 
         private bool disposed = false;
 
-        protected virtual void Dispose(bool disposing)
+        private void Dispose(bool disposing)
         {
             if (!disposed)
             {

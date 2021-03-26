@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using DotNetUniversity.DAL;
@@ -12,18 +13,18 @@ namespace DotNetUniversity.Controllers
     public class CoursesController : Controller
     {
         private readonly SchoolContext _context;
-        private readonly ICourseRepository _courseRepository;
+        private readonly UnitOfWork _unitOfWork;
 
-        public CoursesController(SchoolContext schoolContext, ICourseRepository courseRepository)
+        public CoursesController(SchoolContext schoolContext, UnitOfWork unitOfWork)
         {
             _context = schoolContext;
-            _courseRepository = courseRepository;
+            _unitOfWork = unitOfWork;
         }
 
         // GET: Courses
         public async Task<IActionResult> Index()
         {
-            var courses = await _courseRepository.All();
+            var courses = _unitOfWork.CourseRepository.Get();
             return View(courses);
         }
 
@@ -35,7 +36,7 @@ namespace DotNetUniversity.Controllers
                 return NotFound();
             }
 
-            var course = await _courseRepository.ById((int) id);
+            var course = _unitOfWork.CourseRepository.GetById(id);
             if (course == null)
             {
                 return NotFound();
@@ -61,8 +62,8 @@ namespace DotNetUniversity.Controllers
         {
             if (ModelState.IsValid)
             {
-                await _courseRepository.Add(course);
-                await _courseRepository.Save();
+                _unitOfWork.CourseRepository.Add(course);
+                await _unitOfWork.Save();
                 return RedirectToAction(nameof(Index));
             }
 
@@ -79,7 +80,7 @@ namespace DotNetUniversity.Controllers
                 return NotFound();
             }
 
-            var course = await _courseRepository.Find((int) id);
+            var course = _unitOfWork.CourseRepository.GetById(id);
             if (course == null)
             {
                 return NotFound();
@@ -107,8 +108,8 @@ namespace DotNetUniversity.Controllers
             {
                 try
                 {
-                    await _courseRepository.Update(course);
-                    await _courseRepository.Save();
+                    _unitOfWork.CourseRepository.Update(course);
+                    await _unitOfWork.Save();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -138,7 +139,7 @@ namespace DotNetUniversity.Controllers
                 return NotFound();
             }
 
-            var course = await _courseRepository.ById((int) id);
+            var course = _unitOfWork.CourseRepository.GetById(id);
             if (course == null)
             {
                 return NotFound();
@@ -152,14 +153,14 @@ namespace DotNetUniversity.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            await _courseRepository.Delete(id);
-            await _courseRepository.Save();
+            _unitOfWork.CourseRepository.Delete(id);
+            await _unitOfWork.Save();
             return RedirectToAction(nameof(Index));
         }
 
         private async Task<bool> CourseExists(int id)
         {
-            return await _courseRepository.Exists(id);
+            return await _unitOfWork.CourseRepository.Exists(id);
         }
 
         private void PopulateDepartmentsDropDownList(object selectedDepartment = null)
