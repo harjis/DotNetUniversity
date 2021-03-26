@@ -1,6 +1,5 @@
 using System.Threading.Tasks;
 using DotNetUniversity.DAL;
-using DotNetUniversity.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -10,12 +9,10 @@ namespace DotNetUniversity.Controllers
 {
     public class CoursesController : Controller
     {
-        private readonly SchoolContext _context;
         private readonly UnitOfWork _unitOfWork;
 
-        public CoursesController(SchoolContext schoolContext, UnitOfWork unitOfWork)
+        public CoursesController(UnitOfWork unitOfWork)
         {
-            _context = schoolContext;
             _unitOfWork = unitOfWork;
         }
 
@@ -44,9 +41,9 @@ namespace DotNetUniversity.Controllers
         }
 
         // GET: Courses/Create
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            PopulateDepartmentsDropDownList();
+            await PopulateDepartmentsDropDownList();
             return View();
         }
 
@@ -65,7 +62,7 @@ namespace DotNetUniversity.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            PopulateDepartmentsDropDownList(course.DepartmentId);
+            await PopulateDepartmentsDropDownList(course.DepartmentId);
 
             return View(course);
         }
@@ -84,7 +81,7 @@ namespace DotNetUniversity.Controllers
                 return NotFound();
             }
 
-            PopulateDepartmentsDropDownList(course.DepartmentId);
+            await PopulateDepartmentsDropDownList(course.DepartmentId);
 
             return View(course);
         }
@@ -124,7 +121,7 @@ namespace DotNetUniversity.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            PopulateDepartmentsDropDownList(course.DepartmentId);
+            await PopulateDepartmentsDropDownList(course.DepartmentId);
 
             return View(course);
         }
