@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 using DotNetUniversity.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,8 +10,8 @@ namespace DotNetUniversity.DAL
 {
     public class GenericRepository<TEntity> where TEntity : class
     {
-        internal SchoolContext _schoolContext;
-        internal DbSet<TEntity> _dbSet;
+        protected readonly SchoolContext _schoolContext;
+        private readonly DbSet<TEntity> _dbSet;
 
         public GenericRepository(SchoolContext schoolContext)
         {
@@ -18,7 +19,7 @@ namespace DotNetUniversity.DAL
             _dbSet = schoolContext.Set<TEntity>();
         }
 
-        public virtual IEnumerable<TEntity> Get(
+        public async virtual Task<IEnumerable<TEntity>> Get(
             Expression<Func<TEntity, bool>> filter = null,
             Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>> orderBy = null,
             string includedProperties = ""
@@ -36,17 +37,22 @@ namespace DotNetUniversity.DAL
                 query = query.Include(includedProperty);
             }
 
-            return orderBy?.Invoke(query).ToList() ?? query.ToList();
+            if (orderBy != null)
+            {
+                return await orderBy(query).ToListAsync();
+            }
+
+            return await query.ToListAsync();
         }
 
-        public virtual TEntity GetById(object id)
+        public async virtual Task<TEntity> GetById(object id)
         {
-            return _dbSet.Find(id);
+            return await _dbSet.FindAsync(id);
         }
 
-        public virtual void Add(TEntity entity)
+        public async virtual Task Add(TEntity entity)
         {
-            _dbSet.Add(entity);
+            await _dbSet.AddAsync(entity);
         }
 
         public virtual void Update(TEntity entity)

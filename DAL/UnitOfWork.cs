@@ -6,7 +6,7 @@ namespace DotNetUniversity.DAL
 {
     public sealed class UnitOfWork : IDisposable
     {
-        private SchoolContext _schoolContext;
+        private readonly SchoolContext _schoolContext;
         public readonly CourseRepository CourseRepository;
 
         public UnitOfWork(SchoolContext schoolContext, CourseRepository courseRepository)

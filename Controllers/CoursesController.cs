@@ -24,7 +24,7 @@ namespace DotNetUniversity.Controllers
         // GET: Courses
         public async Task<IActionResult> Index()
         {
-            var courses = _unitOfWork.CourseRepository.Get();
+            var courses = await _unitOfWork.CourseRepository.Get();
             return View(courses);
         }
 
@@ -36,7 +36,7 @@ namespace DotNetUniversity.Controllers
                 return NotFound();
             }
 
-            var course = _unitOfWork.CourseRepository.GetById(id);
+            var course = await _unitOfWork.CourseRepository.GetById(id);
             if (course == null)
             {
                 return NotFound();
@@ -62,7 +62,7 @@ namespace DotNetUniversity.Controllers
         {
             if (ModelState.IsValid)
             {
-                _unitOfWork.CourseRepository.Add(course);
+                await _unitOfWork.CourseRepository.Add(course);
                 await _unitOfWork.Save();
                 return RedirectToAction(nameof(Index));
             }
@@ -80,7 +80,7 @@ namespace DotNetUniversity.Controllers
                 return NotFound();
             }
 
-            var course = _unitOfWork.CourseRepository.GetById(id);
+            var course = await _unitOfWork.CourseRepository.GetById(id);
             if (course == null)
             {
                 return NotFound();
@@ -139,7 +139,7 @@ namespace DotNetUniversity.Controllers
                 return NotFound();
             }
 
-            var course = _unitOfWork.CourseRepository.GetById(id);
+            var course = await _unitOfWork.CourseRepository.GetById(id);
             if (course == null)
             {
                 return NotFound();
