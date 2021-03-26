@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using DotNetUniversity.DAL;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -14,10 +15,12 @@ namespace DotNetUniversity.Controllers
     public class InstructorsController : Controller
     {
         private readonly SchoolContext _context;
+        private readonly UnitOfWork _unitOfWork;
 
-        public InstructorsController(SchoolContext context)
+        public InstructorsController(SchoolContext context, UnitOfWork unitOfWork)
         {
             _context = context;
+            _unitOfWork = unitOfWork;
         }
 
         // GET: Instructors
@@ -25,13 +28,7 @@ namespace DotNetUniversity.Controllers
         {
             var viewModel = new InstructorIndexData
             {
-                Instructors = await _context.Instructors
-                    .Include(i => i.OfficeAssignment)
-                    .Include(i => i.CourseAssignments)
-                    .ThenInclude(i => i.Course)
-                    .ThenInclude(i => i.Department)
-                    .OrderBy(i => i.LastName)
-                    .ToListAsync()
+                Instructors = await _unitOfWork.InstructorRepository.GetIncluded()
             };
 
             if (id != null)
@@ -65,8 +62,7 @@ namespace DotNetUniversity.Controllers
                 return NotFound();
             }
 
-            var instructor = await _context.Instructors
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var instructor = await _unitOfWork.InstructorRepository.GetById(id);
             if (instructor == null)
             {
                 return NotFound();
@@ -78,8 +74,7 @@ namespace DotNetUniversity.Controllers
         // GET: Instructors/Create
         public IActionResult Create()
         {
-            var instructor = new Instructor();
-            instructor.CourseAssignments = new List<CourseAssignment>();
+            var instructor = new Instructor {CourseAssignments = new List<CourseAssignment>()};
             PopulateAssignedCourseData(instructor);
             return View();
         }
@@ -128,12 +123,7 @@ namespace DotNetUniversity.Controllers
                 return NotFound();
             }
 
-            var instructor = await _context.Instructors
-                .Include(i => i.OfficeAssignment)
-                .Include(i => i.CourseAssignments)
-                .ThenInclude(i => i.Course)
-                .AsNoTracking()
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var instructor = await _unitOfWork.InstructorRepository.GetByIdIncluded((int) id);
             if (instructor == null)
             {
                 return NotFound();
@@ -156,11 +146,7 @@ namespace DotNetUniversity.Controllers
                 return NotFound();
             }
 
-            var instructorToUpdate = await _context.Instructors
-                .Include(i => i.OfficeAssignment)
-                .Include(i => i.CourseAssignments)
-                .ThenInclude(i => i.Course)
-                .FirstOrDefaultAsync(s => s.Id == id);
+            var instructorToUpdate = await _unitOfWork.InstructorRepository.GetByIdIncluded((int) id);
 
             if (await TryUpdateModelAsync(
                 instructorToUpdate,
@@ -202,8 +188,7 @@ namespace DotNetUniversity.Controllers
                 return NotFound();
             }
 
-            var instructor = await _context.Instructors
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var instructor = await _unitOfWork.InstructorRepository.GetById(id);
             if (instructor == null)
             {
                 return NotFound();

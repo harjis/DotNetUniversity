@@ -32,6 +32,7 @@ namespace DotNetUniversity
             services.AddControllersWithViews();
             services.AddScoped<CourseRepository>();
             services.AddScoped<DepartmentRepository>();
+            services.AddScoped<InstructorRepository>();
             services.AddScoped<UnitOfWork>();
         }
 
