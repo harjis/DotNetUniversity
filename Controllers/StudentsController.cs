@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using DotNetUniversity.DAL;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -13,16 +14,17 @@ namespace DotNetUniversity.Controllers
     public class StudentsController : Controller
     {
         private readonly SchoolContext _context;
+        private readonly UnitOfWork _unitOfWork;
 
-        public StudentsController(SchoolContext context)
+        public StudentsController(SchoolContext context, UnitOfWork unitOfWork)
         {
             _context = context;
+            _unitOfWork = unitOfWork;
         }
 
         // GET: Students
         public async Task<IActionResult> Index(
             string sortOrder,
-            string currentFilter,
             string searchString,
             int? pageNumber
         )
@@ -30,49 +32,11 @@ namespace DotNetUniversity.Controllers
             ViewData["CurrentSort"] = sortOrder;
             ViewData["NameSortParam"] = String.IsNullOrEmpty(sortOrder) ? "LastName_desc" : "";
             ViewData["DateSortParam"] = sortOrder == "EnrollmentDate" ? "EnrollmentDate_desc" : "EnrollmentDate";
-            ViewData["CurrentFilter"] = searchString;
+            ViewData["SearchString"] = searchString;
 
-            if (searchString != null)
-            {
-                pageNumber = 1;
-            }
-            else
-            {
-                searchString = currentFilter;
-            }
-
-            var students = from s in _context.Students
-                select s;
-
-            if (!String.IsNullOrEmpty(searchString))
-            {
-                students = students.Where(s => s.LastName.Contains(searchString)
-                                               || s.FirstMidName.Contains(searchString));
-            }
-
-            if (string.IsNullOrEmpty(sortOrder))
-            {
-                sortOrder = "LastName";
-            }
-
-            bool descending = false;
-            if (sortOrder.EndsWith("_desc"))
-            {
-                sortOrder = sortOrder.Substring(0, sortOrder.Length - 5);
-                descending = true;
-            }
-
-            if (descending)
-            {
-                students = students.OrderByDescending(e => EF.Property<object>(e, sortOrder));
-            }
-            else
-            {
-                students = students.OrderBy(e => EF.Property<object>(e, sortOrder));
-            }
-
-            int pageSize = 3;
-            return View(await PaginatedList<Student>.CreateAsync(students.AsNoTracking(), pageNumber ?? 1, pageSize));
+            var students =
+                await _unitOfWork.StudentRepository.GetPaginatedStudents(pageNumber, searchString, sortOrder);
+            return View(students);
         }
 
         // GET: Students/Details/5

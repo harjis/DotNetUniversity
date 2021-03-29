@@ -33,6 +33,7 @@ namespace DotNetUniversity
             services.AddScoped<CourseRepository>();
             services.AddScoped<DepartmentRepository>();
             services.AddScoped<InstructorRepository>();
+            services.AddScoped<StudentRepository>();
             services.AddScoped<UnitOfWork>();
         }
 
