@@ -46,15 +46,9 @@ namespace DotNetUniversity.DAL
                 sortOrder = "LastName";
             }
 
-            var descending = false;
             if (sortOrder.EndsWith("_desc"))
             {
                 sortOrder = sortOrder.Substring(0, sortOrder.Length - 5);
-                descending = true;
-            }
-
-            if (descending)
-            {
                 return queryable.OrderByDescending(e => EF.Property<object>(e, sortOrder));
             }
 
