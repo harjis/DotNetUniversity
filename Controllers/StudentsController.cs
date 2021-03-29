@@ -47,11 +47,7 @@ namespace DotNetUniversity.Controllers
                 return NotFound();
             }
 
-            var student = await _context.Students
-                .Include(s => s.Enrollments)
-                .ThenInclude(e => e.Course)
-                .AsNoTracking()
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var student = await _unitOfWork.StudentRepository.GetStudent((int) id);
             if (student == null)
             {
                 return NotFound();
@@ -77,8 +73,9 @@ namespace DotNetUniversity.Controllers
             try
             {
                 if (!ModelState.IsValid) return View(student);
-                _context.Add(student);
-                await _context.SaveChangesAsync();
+                await _unitOfWork.StudentRepository.Add(student);
+                await _unitOfWork.Save();
+
                 return RedirectToAction(nameof(Index));
             }
             catch (DbUpdateException e)
@@ -99,7 +96,7 @@ namespace DotNetUniversity.Controllers
                 return NotFound();
             }
 
-            var student = await _context.Students.FindAsync(id);
+            var student = await _unitOfWork.StudentRepository.GetById(id);
             if (student == null)
             {
                 return NotFound();

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using DotNetUniversity.Data;
@@ -21,6 +22,15 @@ namespace DotNetUniversity.DAL
             students = ByName(students, searchString);
             students = OrderBy(students, sortOrder).AsNoTracking();
             return await PaginatedList<Student>.CreateAsync(students, pageNumber ?? 1, pageSize);
+        }
+
+        public async Task<Student> GetStudent(int id)
+        {
+            var students = Students();
+            return await students.Include(s => s.Enrollments)
+                .ThenInclude(e => e.Course)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(m => m.Id == id);
         }
 
         private IQueryable<Student> Students()
